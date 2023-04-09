@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body{
+            background-color: cornflowerblue;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            align-items: center;
+            text-align: center;
+        }
+
+        div{
+            height: fit-content;
+        }
+
+        #canvas{
+            background-color: aliceblue;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+
+        .flex-container {
+        display: flex;
+        flex-direction: column;
+        background-color: DodgerBlue;
+        }
+
+        .flex-container > div {
+        background-color: #f1f1f1;
+        margin: 10px;
+        padding: 10px;
+        font-size: 30px;
+        }
+
+        div{
+            height: auto;
+        }
+
+        @media print {
+			.print-frame {
+				border: 1px solid black;
+				padding: 5px;
+				margin: 0;
+				width: calc(100% - 2px);
+				height: calc(100% - 2px);
+				page-break-after: always;
+			}
+		}
+
+    </style>
+    <title>Document</title>
+
+    <!-- decimal millimeters = (pixels * 25.4d) / dpi;
+    (200 * 25.4) / 96 = 52.91mm -->
+</head>
+<body>
+    <div class="flex-container">
+        <div>
+            <label for="image_input" class="btn">Vali pilt</label>
+            <input type="file" id="image_input" accept="image/png image/jpg" style="display: none">
+        </div>
+        <div>
+            <!-- <input type="text" id="tekstiSisestus"> -->
+            <textarea name="Text1" cols="40" rows="5" id="tekstiSisestus"></textarea>
+            <button onclick="lisaNimekiri()">Lisa laulude nimekiri</button>
+        </div>
+        <div>
+            <input type="text" id="pealkirjaSisestus">
+            <button onclick="lisaPealkiri()">Lisa pealkiri</button>
+        </div>
+        <div>
+            <button onclick="printCanvas()" class="btn">Prindi</button>
+            <!-- <canvas id="myCanvas"></canvas> -->
+        </div>
+        <div>
+            <canvas id="myCanvas" width="643" height="385" style="border:1px solid #474545;" class="print-frame"></canvas>
+        </div>
+      </div>
+
+    <script>
+        const image_input = document.querySelector("#image_input");
+        var uploaded_image = "";
+
+        var canvas = document.getElementById('myCanvas');
+        var c_width = canvas.width;
+        var c_height = canvas.height;
+
+        // Ääris
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        ctx.strokeStyle = "green";
+        ctx.beginPath();
+        ctx.rect(1, 1, c_width-1, c_height-1);
+        ctx.stroke();
+
+        image_input.addEventListener("change", function() {
+            const reader = new FileReader();
+            reader.addEventListener("load", () => {
+                const img = new Image();
+                img.addEventListener("load", () => {
+                    const canvas = document.getElementById("myCanvas");
+                    const ctx = canvas.getContext("2d");
+                    const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+                    const width = img.width * ratio;
+                    const height = img.height * ratio;
+                    const x = (canvas.width - width) / 2;
+                    const y = (canvas.height - height) / 2;
+                    /* ctx.drawImage(img, x, y, width, height); */
+                    ctx.drawImage(img, c_width - 241*2, 0, 241, c_height);
+                });
+                img.src = reader.result;
+            });
+            reader.readAsDataURL(this.files[0]);
+        });        
+
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        ctx.strokeStyle = "aliceblue";
+        ctx.moveTo(c_width - 241, 0);
+        ctx.lineTo(c_width - 241, c_height);
+        ctx.stroke();
+
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        ctx.moveTo(c_width - 241*2, 0);
+        ctx.lineTo(c_width - 241*2, c_height);
+        ctx.stroke();
+
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        ctx.moveTo(c_width - 241*2 - 49, 0);
+        ctx.lineTo(c_width - 241*2 - 49, c_height);
+        ctx.stroke();
+
+        function openImage() {
+        var img = new Image();
+        img.src = "minu_pilt.jpg";
+        img.onload = function() {
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+        };
+        }
+
+        function lisaPealkiri() {
+        const text = document.getElementById('pealkirjaSisestus').value;
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const textWidth = ctx.measureText(text).width;
+        const x = c_width - 241*2 - 49/2;
+        const y = c_height/2;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(Math.PI/2);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+        }
+
+        function lisaNimekiri() {
+        var tekstiSisestus = document.getElementById("tekstiSisestus").value;
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        ctx.font = "14px Arial";
+        ctx.fillStyle = "black";
+        var lines = tekstiSisestus.split('\n');
+        var lineHeight = 20; // siin saab muuta pealkirjade ridade kõrgust
+        var x = c_width - 230; // siin saab muuta pealkirjade horisontaalset asukohta
+        var y = 22; // muuda y-koordinaat vastavalt vajadusele
+        for (var i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], x, y + (i * lineHeight));
+        }
+        }        
+
+        /* prindime canvase välja */
+        function printCanvas() {
+        var canvas = document.getElementById("myCanvas");
+        var printWindow = window.open('', '', 'height=400,width=800');
+        printWindow.document.write('<html><head><title>Prindi Canvas</title></head><body>');
+        printWindow.document.write('<img src="' + canvas.toDataURL() + '"/>');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+        }
+        </script> 
+</body>
+</html>
