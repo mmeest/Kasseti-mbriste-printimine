@@ -41,7 +41,7 @@
         .flex-container > div {
         background-color: #f1f1f1;
         margin: 10px;
-        padding: 10px;
+        padding: 4px;
         font-size: 30px;
         }
 
@@ -66,20 +66,21 @@
     <!-- decimal millimeters = (pixels * 25.4d) / dpi;
     (200 * 25.4) / 96 = 52.91mm -->
 </head>
-<body>
+<body onload="fontSize()">
     <div class="flex-container">
         <div>
             <label for="image_input" class="btn">Vali pilt</label>
             <input type="file" id="image_input" accept="image/png image/jpg" style="display: none">
+            <p style="font-size: 14px;">Noolenupud muudavad pildi laiust ja asukohta (← vasakule; → paremale; ↑ laiemaks; ↓ kitsamaks)</p>
         </div>
         <div>
-            <!-- <input type="text" id="tekstiSisestus"> -->
+            <input type="number"  id="fondiSuurus">
             <textarea name="Text1" cols="40" rows="5" id="tekstiSisestus"></textarea>
-            <button onclick="lisaNimekiri()">Lisa laulude nimekiri</button>
+            <button onclick="lisaNimekiri()" class="btn">Lisa laulude nimekiri</button>
         </div>
         <div>
             <input type="text" id="pealkirjaSisestus">
-            <button onclick="lisaPealkiri()">Lisa pealkiri</button>
+            <button onclick="lisaPealkiri()" class="btn">Lisa pealkiri</button>
         </div>
         <div>
             <button onclick="printCanvas()" class="btn">Prindi</button>
@@ -98,13 +99,15 @@
         var c_width = canvas.width;
         var c_height = canvas.height;
 
-        // Ääris
-        var c = document.getElementById("myCanvas");
-        var ctx = c.getContext("2d");
-        ctx.strokeStyle = "green";
-        ctx.beginPath();
-        ctx.rect(1, 1, c_width-1, c_height-1);
-        ctx.stroke();
+        /* let x1 = c_width - 241*2; */
+        let x1 = 161;
+        let x2 = 241;
+        let y1 = 0;
+        let y2 = c_height;
+
+        function fontSize(){
+            document.getElementById("fondiSuurus").defaultValue = "14"; 
+        }
 
         image_input.addEventListener("change", function() {
             const reader = new FileReader();
@@ -119,31 +122,82 @@
                     const x = (canvas.width - width) / 2;
                     const y = (canvas.height - height) / 2;
                     /* ctx.drawImage(img, x, y, width, height); */
-                    ctx.drawImage(img, c_width - 241*2, 0, 241, c_height);
+                    ctx.drawImage(img, x1, y1, x2, y2);
+
+                    borders();
+
+                    // pildi nihutamine
+                    document.addEventListener('keydown', handleKeyPress);
+            
+                    function drawImage() {
+                    ctx.clearRect(0, 0, c_width, c_height);
+                    borders();
+                    ctx.drawImage(img, x1, y1, x2, y2);
+                    }
+            
+                    function handleKeyPress(event) {
+                        switch(event.key) {
+                            case 'ArrowLeft':
+                            x1 -= 1;
+                            x2 -= 1;
+                            break;
+                            case 'ArrowRight':
+                            x1 += 1;
+                            x2 += 1;
+                            break;
+                            case 'ArrowUp':
+                            x1 -= 1;
+                            x2 += 2;
+                            break;
+                            case 'ArrowDown':
+                            x1 += 1;
+                            x2 -= 2;
+                            break;
+                            default:
+                            break;
+                        }
+            
+                        /* console.log(x1 + " " + x2); */
+                        drawImage();
+                    }
+
+
                 });
                 img.src = reader.result;
             });
             reader.readAsDataURL(this.files[0]);
-        });        
+        });     
+        
+        function borders(){
+            var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d");
+            ctx.strokeStyle = "black";
+            ctx.moveTo(c_width - 241, 0);
+            ctx.lineTo(c_width - 241, c_height);
+            ctx.stroke();
+    
+            /* var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d"); */
+            ctx.moveTo(c_width - 241*2, 0);
+            ctx.lineTo(c_width - 241*2, c_height);
+            ctx.stroke();
+    
+            /* var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d"); */
+            ctx.moveTo(c_width - 241*2 - 49, 0);
+            ctx.lineTo(c_width - 241*2 - 49, c_height);
+            ctx.stroke();
+    
+            // Ääris
+            /* var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d"); */
+            ctx.strokeStyle = "green";
+            ctx.beginPath();
+            ctx.rect(1, 1, c_width-1, c_height-1);
+            ctx.stroke();
+        }
 
-        var c = document.getElementById("myCanvas");
-        var ctx = c.getContext("2d");
-        ctx.strokeStyle = "aliceblue";
-        ctx.moveTo(c_width - 241, 0);
-        ctx.lineTo(c_width - 241, c_height);
-        ctx.stroke();
 
-        var c = document.getElementById("myCanvas");
-        var ctx = c.getContext("2d");
-        ctx.moveTo(c_width - 241*2, 0);
-        ctx.lineTo(c_width - 241*2, c_height);
-        ctx.stroke();
-
-        var c = document.getElementById("myCanvas");
-        var ctx = c.getContext("2d");
-        ctx.moveTo(c_width - 241*2 - 49, 0);
-        ctx.lineTo(c_width - 241*2 - 49, c_height);
-        ctx.stroke();
 
         function openImage() {
         var img = new Image();
@@ -156,44 +210,53 @@
         }
 
         function lisaPealkiri() {
-        const text = document.getElementById('pealkirjaSisestus').value;
-        ctx.font = '24px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const textWidth = ctx.measureText(text).width;
-        const x = c_width - 241*2 - 49/2;
-        const y = c_height/2;
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(Math.PI/2);
-        ctx.fillText(text, 0, 0);
-        ctx.restore();
+            const text = document.getElementById('pealkirjaSisestus').value;
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const textWidth = ctx.measureText(text).width;
+            const x = c_width - 241*2 - 49/2;
+            const y = c_height/2;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(Math.PI/2);
+            ctx.fillText(text, 0, 0);
+            ctx.restore();
         }
 
         function lisaNimekiri() {
-        var tekstiSisestus = document.getElementById("tekstiSisestus").value;
-        var canvas = document.getElementById("myCanvas");
-        var ctx = canvas.getContext("2d");
-        ctx.font = "14px Arial";
-        ctx.fillStyle = "black";
-        var lines = tekstiSisestus.split('\n');
-        var lineHeight = 20; // siin saab muuta pealkirjade ridade kõrgust
-        var x = c_width - 230; // siin saab muuta pealkirjade horisontaalset asukohta
-        var y = 22; // muuda y-koordinaat vastavalt vajadusele
-        for (var i = 0; i < lines.length; i++) {
-            ctx.fillText(lines[i], x, y + (i * lineHeight));
-        }
+            var f_size = document.getElementById("fondiSuurus").value;
+            console.log(typeof(f_size));
+
+            var tekstiSisestus = document.getElementById("tekstiSisestus").value;
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.font = f_size + "px Arial";
+            ctx.textAlign = 'left'
+            ctx.textBaseline = 'bottom';
+            ctx.fillStyle = "black";
+            var lines = tekstiSisestus.split('\n');
+            var lineHeight = 20; // siin saab muuta pealkirjade ridade kõrgust
+            var x = c_width - 230; // siin saab muuta pealkirjade horisontaalset asukohta
+            var y = 22; // muuda y-koordinaat vastavalt vajadusele
+            for (var i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i], x, y + (i * lineHeight));
+            }
         }        
+
+
 
         /* prindime canvase välja */
         function printCanvas() {
-        var canvas = document.getElementById("myCanvas");
-        var printWindow = window.open('', '', 'height=400,width=800');
-        printWindow.document.write('<html><head><title>Prindi Canvas</title></head><body>');
-        printWindow.document.write('<img src="' + canvas.toDataURL() + '"/>');
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.print();
+            var canvas = document.getElementById("myCanvas");
+            var printWindow = window.open('', '', 'height=400,width=800');
+            printWindow.document.write('<html><head><title>Prindi Canvas</title></head><body>');
+            printWindow.document.write('<img src="' + canvas.toDataURL() + '"/>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
         }
         </script> 
 </body>
